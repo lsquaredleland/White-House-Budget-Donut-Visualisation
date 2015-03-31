@@ -1,0 +1,14 @@
+#chartArea {
+	border: 2px dashed black;
+	height: 850px;
+	width: 800px;
+}
+
+path {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+path:hover {
+	fill: orange;
+}
