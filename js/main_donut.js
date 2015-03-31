@@ -43,8 +43,7 @@ function analyze(budget){
 	var grand_total_0 = 0; //number of agency with 0 budget
 	var grand_total_abs10k = 0;
 	var agency_budget = 0;//note this is an aggregate
-	var donutDataReference = [];
-	var donutData = [];
+	var refData = {};
 	var transfer_information = [];// array of budgets within the agency
 	var target_year = 'yr2020';
 
@@ -67,18 +66,15 @@ function analyze(budget){
 			}
 			
 			if(Math.abs(agency_budget) > 0){
-				donutDataReference.push({
+				refData[i] = {
 					//could push an array/object that contains all the children
 					//-> can be accessed later when chart is manipulated
 					details: transfer_information,
 					budget: agency_budget,
 					agency: current_agency, //this is where fixed mismatched
-					id: i
-				});
-				donutData.push({
 					id: i,
 					placeholderVal: 10
-				});
+				}
 			}
 
 			agency_budget = budget[i][target_year];
@@ -90,7 +86,8 @@ function analyze(budget){
 	console.log('num of Agencies: ' + grand_total);
 	console.log('num of Agencies with funding: ' + (grand_total - grand_total_0));
 	console.log('num of Agencies with abs funding > 10k: ' + (grand_total_abs10k));
-	generateDonut(donutData, donutDataReference)
+	console.log(refData)
+	generateDonut(refData)
 }
 
 
@@ -103,7 +100,7 @@ d3.csv('data/budauth.csv', function(data) {
 });
 
 
-function generateDonut(donutData, refData){
+function generateDonut(refData){
 	var divH = parseInt( d3.select("#chartArea").style("height") );
 	var divW = parseInt( d3.select("#chartArea").style("width") );
 
@@ -112,7 +109,15 @@ function generateDonut(donutData, refData){
 	h = divH - margin.top - margin.bottom;
 	smallestDim = h < w ? h : w;
 
-	var max = d3.max(refData, function(d){ return +d.budget; });
+	console.log('innerRadius')
+
+	var budget = []
+	for(key in refData){
+		budget.push(refData[key].budget);
+	}
+
+	var max = d3.max(budget);
+	console.log("max: " + max);
 
 	var rad = d3.scale.pow()//log would be better
 		.exponent(.25)
@@ -122,8 +127,17 @@ function generateDonut(donutData, refData){
 	var outerRadius = smallestDim / 2.2 - 140,
 	    innerRadius = outerRadius / 1;
 
+	//because cannot access object literals through accessor functions
+	//using arrays instead
+	var temp_list = []
+	for(key in refData){
+		temp_list.push({
+			id: key,
+			placeholderVal: 10
+		});
+	}
 	var pie = d3.layout.pie()
-		.value(function(d) { return d.placeholderVal; })
+		.value(function(d){ return d.placeholderVal; })
 	  .padAngle(.015);
 
 	var arc = d3.svg.arc()
@@ -149,12 +163,12 @@ function generateDonut(donutData, refData){
 	d3.select('#valueSource').html("Hover to View");
 
 	svg.selectAll("path")
-	    .data(pie(donutData))
+	    .data(pie(temp_list))
 	  .enter().append("path")
 	    .each(function(d) { d.outerRadius = outerRadius + rad(reference(refData, d.data.id,'budget')); })//need log scale
 	    .attr("d", arc)
 	    .on("mouseover", function(d) {
-	    	d3.select("#valueOutput").html(d.data.agency);
+	    	d3.select("#valueOutput").html(reference(refData, d.data.id,'agency'));
 	      d3.select("#valueSource").html('$' + formatNumber(reference(refData, d.data.id,'budget')));
 
 	    	console.log(reference(refData, d.data.id,'agency') + " : " + reference(refData, d.data.id,'budget'));
@@ -164,12 +178,12 @@ function generateDonut(donutData, refData){
 	    })
 }
 
+//referencing a dataset rather than binding it to the DOM
+//Is it more resource effective?
 function reference(refData, id, param){
-	for(data in refData){
-		if(refData[data].id == id)
-			return refData[data][param];
+	//What is a more efficient way to do a look up?
+		return refData[id][param];
 	}
-}
 
 //add commas to numbers to make readable
 function formatNumber(num) {
