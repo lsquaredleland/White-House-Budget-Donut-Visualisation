@@ -18,7 +18,7 @@ function process(d){
 		yr2020: d['2020'] == '0' ? 0 : +replaceAll(',', '', d['2020'])
 	});
 	if(budget.length == 4442){
-		analyze(budget);//similar to a callback in a sense
+		analyze(budget);
 	}
 }
 function analyze(budget){
@@ -43,12 +43,12 @@ function analyze(budget){
 	var grand_total_0 = 0; //number of agency with 0 budget
 	var grand_total_abs10k = 0;
 	var agency_budget = 0;//note this is an aggregate
-	var refData = {};
+	var refData = {};// d3 viz is bound with an id that can be used to reference this
 	var transfer_information = [];// array of budgets within the agency
 	var target_year = 'yr2020';
 
 	for(i in budget){
-		if(budget[i].agency == current_agency){//how to make the data more consistant...
+		if(budget[i].agency == current_agency){
 			number_of_agency += 1;
 			agency_budget += budget[i][target_year];
 			transfer_information.push(budget[i])
@@ -60,18 +60,15 @@ function analyze(budget){
 				grand_total_0 += 1;
 			}
 
-			//if an agency spends > 10K -> will be on graph
 			if(Math.abs(agency_budget) > 10000){
 				grand_total_abs10k += 1
 			}
 			
 			if(Math.abs(agency_budget) > 0){
 				refData[i] = {
-					//could push an array/object that contains all the children
-					//-> can be accessed later when chart is manipulated
 					details: transfer_information,
 					budget: agency_budget,
-					agency: current_agency, //this is where fixed mismatched
+					agency: current_agency,
 					id: i,
 					placeholderVal: 10
 				}
@@ -109,8 +106,7 @@ function generateDonut(refData){
 	h = divH - margin.top - margin.bottom;
 	smallestDim = h < w ? h : w;
 
-	console.log('innerRadius')
-
+	//var budget = [for (key of refData) refData[key].budget];
 	var budget = []
 	for(key in refData){
 		budget.push(refData[key].budget);
@@ -131,13 +127,10 @@ function generateDonut(refData){
 	//using arrays instead
 	var temp_list = []
 	for(key in refData){
-		temp_list.push({
-			id: key,
-			placeholderVal: 10
-		});
+		temp_list.push({ id: key });
 	}
 	var pie = d3.layout.pie()
-		.value(function(d){ return d.placeholderVal; })
+		.value(function(d){ return 10; })// all of input is bound, with i set as 'val'
 	  .padAngle(.015);
 
 	var arc = d3.svg.arc()
@@ -155,35 +148,34 @@ function generateDonut(refData){
 		.attr("id", "valueOutput")
 		.attr("text-anchor", "middle")
 		.attr("transform","translate(" + innerRadius/20 + "," + innerRadius/24 + ")");
-	d3.select('#valueOutput').html("");
+	d3.select('#valueOutput').html("Hover to View");;
 	svg.append("text")
 		.attr("id", "valueSource")
 		.attr("text-anchor", "middle")
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 24) + ")");
-	d3.select('#valueSource').html("Hover to View");
+	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));
 
 	svg.selectAll("path")
 	    .data(pie(temp_list))
 	  .enter().append("path")
-	    .each(function(d) { d.outerRadius = outerRadius + rad(reference(refData, d.data.id,'budget')); })//need log scale
+	    .each(function(d) { d.outerRadius = outerRadius + rad(ref(refData, d.data.id,'budget')); })
 	    .attr("d", arc)
 	    .on("mouseover", function(d) {
-	    	d3.select("#valueOutput").html(reference(refData, d.data.id,'agency'));
-	      d3.select("#valueSource").html('$' + formatNumber(reference(refData, d.data.id,'budget')));
+	    	d3.select("#valueOutput").html(ref(refData, d.data.id,'agency'));
+	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
-	    	console.log(reference(refData, d.data.id,'agency') + " : " + reference(refData, d.data.id,'budget'));
+	    	console.log(ref(refData, d.data.id,'agency') + " : " + ref(refData, d.data.id,'budget'));
 	    })
 	    .on("click", function(d) {
-	    	console.log(reference(refData, d.data.id,'details'))
+	    	console.log(ref(refData, d.data.id,'details'))
 	    })
 }
 
 //referencing a dataset rather than binding it to the DOM
 //Is it more resource effective?
-function reference(refData, id, param){
-	//What is a more efficient way to do a look up?
-		return refData[id][param];
-	}
+function ref(refData, id, param){
+	return refData[id][param];
+}
 
 //add commas to numbers to make readable
 function formatNumber(num) {

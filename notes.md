@@ -1,16 +1,12 @@
-#What to do:
+#Next Steps:
+>Create animation where heights of the bars change how the budget has evolved over the years
+>Add input to change the years temporarily
+>Find the best way to use a sunburst chart with the way the data is currently structured? Consider going that direction
+>Or when click on a portion, it expands into more options, shifting the entire pie chart
 
-Find the best way to use a sunburst chart with the way the data is currently structured
-Make inclusive items a child? 
-
-could -> look at how different offices have different change rates?
-->precompute the values -> no need to push to the client
+##Todo:
+>Find a better way to unite the budget and refData array, and how they access it each other, etc
 
 
-How to visualise negative data in a pie or treemap?
-make the total be the abs of all, then have a unique colour for negs?
-->u/ bar charts as a alternative?
--> donut chart -> make values go inwards if negative?
--->all widths are equal??
-
-How to make a circle of circles in D3?
+##Curiosities
+>How to make a circle of circles?
