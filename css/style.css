@@ -1,7 +1,7 @@
 #chartArea {
 	border: 2px dashed black;
-	height: 850px;
-	width: 800px;
+	height: 900px;
+	width: 900px;
 }
 
 path {
@@ -11,4 +11,13 @@ path {
 }
 path:hover {
 	fill: orange;
+}
+
+#btn-bar{
+	border: 2px dashed black;
+}
+#btn-bar h2{
+	display: inline;
+	margin-left: 50px;
+	margin-right: 50px;
 }

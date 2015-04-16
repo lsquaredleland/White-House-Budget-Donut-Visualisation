@@ -18,23 +18,23 @@ function process(d){
 		yr2020: d['2020'] == '0' ? 0 : +replaceAll(',', '', d['2020'])
 	});
 	if(budget.length == 4442){
-		analyze(budget);
+		analyze(budget, 'yr2020');
 	}
 }
-function analyze(budget){
-	function addingCallback(budget, input){
+function analyze(budget, target_year){
+	function yearTotalBudget(budget, input){
 		var sum = 0;
 		for(val in budget){
 			sum += budget[val][input];
 		}
 		console.log('sum for ' + input + ': ' + sum)
 	}
-	addingCallback(budget, "yr2010");
-	addingCallback(budget, "yr2012");
-	addingCallback(budget, "yr2014");
-	addingCallback(budget, "yr2016");
-	addingCallback(budget, "yr2018");
-	addingCallback(budget, "yr2020");
+	yearTotalBudget(budget, "yr2010");
+	yearTotalBudget(budget, "yr2012");
+	yearTotalBudget(budget, "yr2014");
+	yearTotalBudget(budget, "yr2016");
+	yearTotalBudget(budget, "yr2018");
+	yearTotalBudget(budget, "yr2020");
 
 	//this is to generate aggregate information
 	var current_agency = budget[0].agency;
@@ -45,7 +45,6 @@ function analyze(budget){
 	var agency_budget = 0;//note this is an aggregate
 	var refData = {};// d3 viz is bound with an id that can be used to reference this
 	var transfer_information = [];// array of budgets within the agency
-	var target_year = 'yr2020';
 
 	for(i in budget){
 		if(budget[i].agency == current_agency){
@@ -137,9 +136,11 @@ function generateDonut(refData){
 	    .padRadius(outerRadius)
 	    .innerRadius(innerRadius);
 
+	//clear graph on load
+	document.getElementById("chartArea").innerHTML = "";
 	var svg = d3.select("#chartArea").append("svg")
 	    .attr("width", w)
-	    .attr("height", h + 50)//to prevent cut off when gets larger
+	    .attr("height", h)
 	  .append("g")
 	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
 
@@ -192,3 +193,29 @@ function arcTween(outerRadius, delay) {
   };
 }
 	
+setTimeout(function(){
+	document.getElementById("btn-1").addEventListener('click', function(){
+		console.log('btn-1');
+		analyze(budget, 'yr2020');
+	})
+	document.getElementById("btn-2").addEventListener('click', function(){
+		console.log('btn-2');
+		analyze(budget, 'yr2018');
+	})
+	document.getElementById("btn-3").addEventListener('click', function(){
+		console.log('btn-3');
+		analyze(budget, 'yr2016');
+	})
+	document.getElementById("btn-4").addEventListener('click', function(){
+		console.log('btn-4');
+		analyze(budget, 'yr2014');
+	})
+	document.getElementById("btn-5").addEventListener('click', function(){
+		console.log('btn-5');
+		analyze(budget, 'yr2012');
+	})
+	document.getElementById("btn-6").addEventListener('click', function(){
+		console.log('btn-6');
+		analyze(budget, 'yr2010');
+	})
+},1000)
