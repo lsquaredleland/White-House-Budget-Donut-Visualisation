@@ -165,6 +165,13 @@ function generateDonut(refData){
 	    	d3.select("#valueOutput").html(ref(refData, d.data.id,'agency'));
 	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
+	      //delete this once select on a new one...
+	      d3.select('#chartArea').select('svg').append('circle')
+	      	.attr('class', 'distance-circle')
+	      	.attr("cx", w/2)
+					.attr("cy", h/2)
+					.attr("r", d.outerRadius);
+
 	    	console.log(ref(refData, d.data.id,'agency') + " : " + ref(refData, d.data.id,'budget'));
 	    })
 	    .on("click", function(d) {

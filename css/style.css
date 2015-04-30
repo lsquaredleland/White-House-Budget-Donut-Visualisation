@@ -21,3 +21,9 @@ path:hover {
 	margin-left: 50px;
 	margin-right: 50px;
 }
+
+.distance-circle{
+	fill: none;
+	stroke: maroon;
+	stroke-width: 1px;
+}
