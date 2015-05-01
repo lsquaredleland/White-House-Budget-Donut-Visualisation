@@ -161,11 +161,18 @@ function generateDonut(refData){
 	  .enter().append("path")
 	    .each(function(d) { d.outerRadius = outerRadius + rad(ref(refData, d.data.id,'budget')); })
 	    .attr("d", arc)
+	    .style('fill', 'rgba(150, 255, 200, 0.74902)')
+	    .style('stroke', '#333')
+	    .style('stroke-width', '1.5px')
 	    .on("mouseover", function(d) {
+	    	if(d.value == 10){
+	    		d3.select(this).style('fill', 'orange');
+	    	}
+
 	    	d3.select("#valueOutput").html(ref(refData, d.data.id,'agency'));
 	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
-	      //delete this once select on a new one...
+	      d3.select('.distance-circle').remove();
 	      d3.select('#chartArea').select('svg').append('circle')
 	      	.attr('class', 'distance-circle')
 	      	.attr("cx", w/2)
@@ -174,8 +181,29 @@ function generateDonut(refData){
 
 	    	console.log(ref(refData, d.data.id,'agency') + " : " + ref(refData, d.data.id,'budget'));
 	    })
+	    .on("mouseout", function(d){
+	    	console.log(d3.select(this).style('fill'))
+	    	if(d.value == 10)
+	    		d3.select(this).style('fill', 'rgba(150, 255, 200, 0.74902)');
+	    })
 	    .on("click", function(d) {
 	    	console.log(ref(refData, d.data.id,'details'))
+
+	    	//if reclick -> remove it
+	    	//when this is added should do something
+	    	if(d.value == 10){
+	    		d3.select(this).style('fill', 'maroon');//being overridden by CSS...
+		    	d3.select('#chartArea').select('svg').append('circle')
+		      	.attr('class', 'distance-circle-comp')
+		      	.attr("cx", w/2)
+						.attr("cy", h/2)
+						.attr("r", d.outerRadius);
+					d.value = 11;
+				}
+				else{
+					d3.select('.distance-circle-comp').remove();
+					d.value = 10;
+				}
 	    })
 }
 
