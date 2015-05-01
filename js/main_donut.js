@@ -119,7 +119,7 @@ function generateDonut(refData){
     .domain([0, max])
     .rangeRound([0, 200]);
 
-	var outerRadius = smallestDim / 2.2 - 140,
+	var outerRadius = smallestDim / 2.2 - 150,
 	    innerRadius = outerRadius / 1;
 
 	//because cannot access object literals through accessor functions
@@ -130,7 +130,7 @@ function generateDonut(refData){
 	}
 	var pie = d3.layout.pie()
 		.value(function(d){ return 10; })// all of input is bound, with i set as 'val'
-	  .padAngle(.015);
+	  .padAngle(.010);
 
 	var arc = d3.svg.arc()
 	    .padRadius(outerRadius)
@@ -172,25 +172,33 @@ function generateDonut(refData){
 	    	d3.select("#valueOutput").html(ref(refData, d.data.id,'agency'));
 	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
-	      d3.select('.distance-circle').remove();
-	      d3.select('#chartArea').select('svg').append('circle')
-	      	.attr('class', 'distance-circle')
-	      	.attr("cx", w/2)
-					.attr("cy", h/2)
-					.attr("r", d.outerRadius);
+	      d3.selectAll('.distance-circle').remove();
+
+	      //creating the comparison bands
+	      var bands = [-10,0,10]
+	      for(i in bands){
+	      	createComparisonCircles(bands[i]);
+	      }
+	      function createComparisonCircles(modifier){
+	      	d3.select('#chartArea').select('svg').append('circle')
+		      	.attr('class', 'distance-circle')
+		      	.attr("cx", w/2)
+						.attr("cy", h/2)
+						.attr("r", d.outerRadius + modifier);
+	      }
 
 	    	console.log(ref(refData, d.data.id,'agency') + " : " + ref(refData, d.data.id,'budget'));
 	    })
 	    .on("mouseout", function(d){
-	    	console.log(d3.select(this).style('fill'))
 	    	if(d.value == 10)
 	    		d3.select(this).style('fill', 'rgba(150, 255, 200, 0.74902)');
 	    })
 	    .on("click", function(d) {
 	    	console.log(ref(refData, d.data.id,'details'))
 
-	    	//if reclick -> remove it
-	    	//when this is added should do something
+	    	console.log(refData[d.data.id])
+
+	    	//what is a better way to represent change rather than modifying d.value?
 	    	if(d.value == 10){
 	    		d3.select(this).style('fill', 'maroon');//being overridden by CSS...
 		    	d3.select('#chartArea').select('svg').append('circle')

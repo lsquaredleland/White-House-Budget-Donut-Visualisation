@@ -1,5 +1,5 @@
 body{
-	background-color: rgba(150, 66, 108, 0.24902);
+	background-color: rgba(235, 232, 193, 0.24902);
 }
 
 #chartArea {
@@ -23,11 +23,12 @@ path:hover {
 
 .distance-circle, .distance-circle-comp{
 	fill: none;
-	stroke: green;
+	stroke: orange;
 	stroke-width: 1px;
-	stroke-dasharray: 20, 10, 5, 10, 5, 10;
+	stroke-dasharray: 1px;	
 }
 
 .distance-circle-comp{
 	stroke: maroon;
+	stroke-dasharray: 20, 10, 5, 10, 5, 10;
 }
