@@ -63,7 +63,8 @@ function analyze(budget, target_year){
 				grand_total_abs10k += 1
 			}
 			
-			if(Math.abs(agency_budget) > 0){
+			var rangeLimit = 0;
+			if(Math.abs(agency_budget) > rangeLimit){
 				refData[i] = {
 					details: transfer_information,
 					budget: agency_budget,
@@ -95,7 +96,6 @@ d3.csv('data/budauth.csv', function(data) {
 	console.log(rows);
 });
 
-
 function generateDonut(refData){
 	var divH = parseInt( d3.select("#chartArea").style("height") );
 	var divW = parseInt( d3.select("#chartArea").style("width") );
@@ -117,9 +117,9 @@ function generateDonut(refData){
 	var rad = d3.scale.pow()//log would be better
 		.exponent(.25)
     .domain([0, max])
-    .rangeRound([0, 200]);
+    .rangeRound([0, smallestDim / 3.5]);
 
-	var outerRadius = smallestDim / 2.2 - 150,
+	var outerRadius = smallestDim / 4.5,
 	    innerRadius = outerRadius / 1;
 
 	//because cannot access object literals through accessor functions
@@ -135,6 +135,11 @@ function generateDonut(refData){
 	var arc = d3.svg.arc()
 	    .padRadius(outerRadius)
 	    .innerRadius(innerRadius);
+
+	var valueline = d3.svg.line()
+		.interpolate("cardinal-closed")  
+	  .x(function(d) { return d[0]; })
+	  .y(function(d) { return d[1]; });
 
 	//clear graph on load
 	document.getElementById("chartArea").innerHTML = "";
@@ -156,10 +161,18 @@ function generateDonut(refData){
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 24) + ")");
 	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));
 
+	var lines = [];
 	svg.selectAll("path")
 	    .data(pie(temp_list))
 	  .enter().append("path")
-	    .each(function(d) { d.outerRadius = outerRadius + rad(ref(refData, d.data.id,'budget')); })
+	    .each(function(d) { 
+	    	d.outerRadius = innerRadius + rad(ref(refData, d.data.id,'budget'));
+
+	    	//for the lines
+	    	var alpha = (d.startAngle + d.endAngle)/2;
+	    	var l = d.outerRadius > outerRadius ? d.outerRadius + 20 : d.outerRadius - 20
+	    	lines.push([alpha, l])
+	    })
 	    .attr("d", arc)
 	    .style('fill', 'rgba(150, 255, 200, 0.74902)')
 	    .style('stroke', '#333')
@@ -213,6 +226,29 @@ function generateDonut(refData){
 					d.value = 10;
 				}
 	    })
+	//drawing the lines
+	//need to sort..due to d3 intracasies
+	//note only one of the value jumps
+	lines = lines.sort(function(a, b){
+		return a[0] - b[0];
+	})
+	
+	for(i in lines){
+		var alpha = lines[i][0];
+		var l = lines[i][1];
+		var x = l * Math.sin(alpha)
+		var y = l * Math.cos(alpha)
+		lines[i] = [x,-y]
+	}
+
+
+	console.log(lines);
+	svg.append("path")
+    .attr("class", "line")
+    .style("fill", "none")
+    .style("stroke-width", "1px")
+    .style("stroke", "black")
+    .attr("d", valueline(lines));
 }
 
 //referencing a dataset rather than binding it to the DOM

@@ -8,10 +8,6 @@ body{
 	width: 1000px;
 }
 
-path:hover {
-	fill: orange;
-}
-
 #btn-bar{
 	border: 2px dashed black;
 }
