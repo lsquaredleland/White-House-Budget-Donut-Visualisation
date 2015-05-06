@@ -29,12 +29,12 @@ function analyze(budget, target_year){
 		}
 		console.log('sum for ' + input + ': ' + sum)
 	}
-	yearTotalBudget(budget, "yr2010");
+	/*yearTotalBudget(budget, "yr2010");
 	yearTotalBudget(budget, "yr2012");
 	yearTotalBudget(budget, "yr2014");
 	yearTotalBudget(budget, "yr2016");
 	yearTotalBudget(budget, "yr2018");
-	yearTotalBudget(budget, "yr2020");
+	yearTotalBudget(budget, "yr2020");*/
 
 	//this is to generate aggregate information
 	var current_agency = budget[0].agency;
@@ -136,8 +136,10 @@ function generateDonut(refData){
 	    .padRadius(outerRadius)
 	    .innerRadius(innerRadius);
 
+	var lines = [];
+	var lines2 = [];
 	var valueline = d3.svg.line()
-		.interpolate("cardinal-closed")  
+		.interpolate("cardinal-closed")  //step-after looks cool
 	  .x(function(d) { return d[0]; })
 	  .y(function(d) { return d[1]; });
 
@@ -161,7 +163,7 @@ function generateDonut(refData){
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 24) + ")");
 	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));
 
-	var lines = [];
+	//drawing main chart
 	svg.selectAll("path")
 	    .data(pie(temp_list))
 	  .enter().append("path")
@@ -172,13 +174,14 @@ function generateDonut(refData){
 	    	var alpha = (d.startAngle + d.endAngle)/2;
 	    	var l = d.outerRadius > outerRadius ? d.outerRadius + 20 : d.outerRadius - 20
 	    	lines.push([alpha, l])
+	    	lines2.push([alpha, l - 5])
 	    })
 	    .attr("d", arc)
 	    .style('fill', 'rgba(150, 255, 200, 0.74902)')
 	    .style('stroke', '#333')
 	    .style('stroke-width', '1.5px')
 	    .on("mouseover", function(d) {
-	    	if(d.value == 10){
+	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		d3.select(this).style('fill', 'orange');
 	    	}
 
@@ -188,7 +191,7 @@ function generateDonut(refData){
 	      d3.selectAll('.distance-circle').remove();
 
 	      //creating the comparison bands
-	      var bands = [-10,0,10]
+	      /*var bands = [-10,0,10]
 	      for(i in bands){
 	      	createComparisonCircles(bands[i]);
 	      }
@@ -198,57 +201,63 @@ function generateDonut(refData){
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
 						.attr("r", d.outerRadius + modifier);
-	      }
-
-	    	console.log(ref(refData, d.data.id,'agency') + " : " + ref(refData, d.data.id,'budget'));
+	      }*/
 	    })
 	    .on("mouseout", function(d){
-	    	if(d.value == 10)
-	    		d3.select(this).style('fill', 'rgba(150, 255, 200, 0.74902)');
+	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    		d3.select(this)
+	    			.transition()
+	    			.delay(125)
+	    			.duration(250)
+	    			.style('fill', 'rgba(150, 255, 200, 0.74902)');
+	    	}
 	    })
 	    .on("click", function(d) {
 	    	console.log(ref(refData, d.data.id,'details'))
 
 	    	console.log(refData[d.data.id])
 
-	    	//what is a better way to represent change rather than modifying d.value?
-	    	if(d.value == 10){
+	    	//fix the css file.....
+	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    		d.data.circle = true; //this creates a new item in the object
 	    		d3.select(this).style('fill', 'maroon');//being overridden by CSS...
 		    	d3.select('#chartArea').select('svg').append('circle')
 		      	.attr('class', 'distance-circle-comp')
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
 						.attr("r", d.outerRadius);
-					d.value = 11;
+					console.log(d)
+					console.log(d.data)
 				}
 				else{
 					d3.select('.distance-circle-comp').remove();
-					d.value = 10;
+					d.data.circle = false;
 				}
 	    })
-	//drawing the lines
-	//need to sort..due to d3 intracasies
-	//note only one of the value jumps
-	lines = lines.sort(function(a, b){
-		return a[0] - b[0];
-	})
-	
-	for(i in lines){
-		var alpha = lines[i][0];
-		var l = lines[i][1];
-		var x = l * Math.sin(alpha)
-		var y = l * Math.cos(alpha)
-		lines[i] = [x,-y]
+	drawTrace(lines);
+	drawTrace(lines2);
+	function drawTrace(lines){
+		//drawing the lines
+		//need to sort..due to d3 intracasies
+		//note only one of the value jumps
+		lines = lines.sort(function(a, b){
+			return a[0] - b[0];
+		})
+		
+		for(i in lines){
+			var alpha = lines[i][0];
+			var l = lines[i][1];
+			var x = l * Math.sin(alpha)
+			var y = l * Math.cos(alpha)
+			lines[i] = [x,-y]
+		}
+		svg.append("path")
+	    .attr("class", "line")
+	    .style("fill", "none")
+	    .style("stroke-width", "1px")
+	    .style("stroke", "black")
+	    .attr("d", valueline(lines));
 	}
-
-
-	console.log(lines);
-	svg.append("path")
-    .attr("class", "line")
-    .style("fill", "none")
-    .style("stroke-width", "1px")
-    .style("stroke", "black")
-    .attr("d", valueline(lines));
 }
 
 //referencing a dataset rather than binding it to the DOM
