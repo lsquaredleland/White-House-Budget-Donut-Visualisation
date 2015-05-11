@@ -138,6 +138,8 @@ function generateDonut(refData){
 
 	var lines = [];
 	var lines2 = [];
+	var lines3 = [];
+	var lines4 = [];
 	var valueline = d3.svg.line()
 		.interpolate("cardinal-closed")  //step-after looks cool
 	  .x(function(d) { return d[0]; })
@@ -175,6 +177,8 @@ function generateDonut(refData){
 	    	var l = d.outerRadius > outerRadius ? d.outerRadius + 20 : d.outerRadius - 20
 	    	lines.push([alpha, l])
 	    	lines2.push([alpha, l - 5])
+	    	lines3.push([alpha, l - 10])
+	    	lines4.push([alpha, l - 2])
 	    })
 	    .attr("d", arc)
 	    .style('fill', 'rgba(150, 255, 200, 0.74902)')
@@ -191,7 +195,7 @@ function generateDonut(refData){
 	      d3.selectAll('.distance-circle').remove();
 
 	      //creating the comparison bands
-	      /*var bands = [-10,0,10]
+	      var bands = [0]; //[-10,0,10]
 	      for(i in bands){
 	      	createComparisonCircles(bands[i]);
 	      }
@@ -201,7 +205,7 @@ function generateDonut(refData){
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
 						.attr("r", d.outerRadius + modifier);
-	      }*/
+	      }
 	    })
 	    .on("mouseout", function(d){
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
@@ -236,6 +240,8 @@ function generateDonut(refData){
 	    })
 	drawTrace(lines);
 	drawTrace(lines2);
+	drawTrace(lines3);
+	drawTrace(lines4);
 	function drawTrace(lines){
 		//drawing the lines
 		//need to sort..due to d3 intracasies
