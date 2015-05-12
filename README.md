@@ -21,3 +21,6 @@ Use: D3.js
 ###Curiosities
 * Try to turn into a isotype?
 * For example try to use circles?
+
+
+* draw canvas ontop of svg -> set z-scores + fix positions

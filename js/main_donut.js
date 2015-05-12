@@ -147,6 +147,18 @@ function generateDonut(refData){
 
 	//clear graph on load
 	document.getElementById("chartArea").innerHTML = "";
+
+	//Attempted Canvas Integration
+	var sketch = d3.select('#chartArea').append('canvas')
+			.attr("width", w)
+	    .attr("height", h)
+	    .attr('class', 'top-layer')
+	    .style('position', 'absolute')
+	    .style('z-index', -1)
+	  .append("g")
+	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
+	//var context = sketch.getContext("2d");
+
 	var svg = d3.select("#chartArea").append("svg")
 	    .attr("width", w)
 	    .attr("height", h)
