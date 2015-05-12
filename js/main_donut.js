@@ -85,11 +85,16 @@ function analyze(budget, target_year){
 	console.log('num of Agencies with abs funding > 10k: ' + (grand_total_abs10k));
 	console.log(refData)
 	generateDonut(refData)
+	//crossData.dimension(function(d){console.log(d)});
+	//agency = crossData.dimension(function(d){return['Agency Name']});
+	//agency_filtered = agency.filter('Undistributed Offsetting Receipts')
+
 }
 
-
+crossData = crossfilter()
 //This is where the file is being loaded -> then parsed
 d3.csv('data/budauth.csv', function(data) {
+	crossData.add([data])
 	process(data)
 }, function(error, rows) {
 	console.log(error);
@@ -157,7 +162,9 @@ function generateDonut(refData){
 	    .style('z-index', -1)
 	  .append("g")
 	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
-	//var context = sketch.getContext("2d");
+	/*var context = sketch.getContext("2d");
+	context.rect(20,20,150,100);
+	context.stroke();*/
 
 	var svg = d3.select("#chartArea").append("svg")
 	    .attr("width", w)
