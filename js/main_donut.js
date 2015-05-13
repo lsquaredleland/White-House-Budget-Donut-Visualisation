@@ -265,7 +265,7 @@ function generateDonut(refData){
 		//drawing the lines
 		//need to sort..due to d3 intracasies
 		//note only one of the value jumps
-		lines = lines.sort(function(a, b){
+		lines = lines.slice().sort(function(a, b){
 			return a[0] - b[0];
 		})
 		
@@ -282,6 +282,25 @@ function generateDonut(refData){
 	    .style("stroke-width", "1px")
 	    .style("stroke", "black")
 	    .attr("d", valueline(lines));
+	}
+
+	drawCircle(lines)
+	function drawCircle(lines){
+		var coordinates = []
+		for(i in lines){
+			var alpha = lines[i][0];
+			var l = lines[i][1];
+			var x = l * Math.sin(alpha)
+			var y = l * Math.cos(alpha)
+			coordinates.push([x,-y])
+		}
+		for(i in coordinates){
+			svg.append("circle")
+		    .style("fill", "maroon")
+		    .attr('cx', coordinates[i][0])
+		    .attr('cy', coordinates[i][1])
+		    .attr('r', 5)
+		}
 	}
 }
 
