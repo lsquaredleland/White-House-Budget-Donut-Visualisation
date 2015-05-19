@@ -1,5 +1,4 @@
-var dataset;
-var budget = [];
+var budget = []; //only modified once
 function replaceAll(find, replace, str) {
   return str.replace(new RegExp(find, 'g'), replace);
 }
@@ -21,7 +20,7 @@ function process(d){
 		analyze(budget, 'yr2020');
 	}
 }
-function analyze(budget, target_year){
+function overview(budget){
 	function yearTotalBudget(budget, input){
 		var sum = 0;
 		for(val in budget){
@@ -29,13 +28,16 @@ function analyze(budget, target_year){
 		}
 		console.log('sum for ' + input + ': ' + sum)
 	}
-	/*yearTotalBudget(budget, "yr2010");
+
+	yearTotalBudget(budget, "yr2010");
 	yearTotalBudget(budget, "yr2012");
 	yearTotalBudget(budget, "yr2014");
 	yearTotalBudget(budget, "yr2016");
 	yearTotalBudget(budget, "yr2018");
-	yearTotalBudget(budget, "yr2020");*/
-
+	yearTotalBudget(budget, "yr2020");
+}
+crossData = crossfilter()
+function analyze(budget, target_year){
 	//this is to generate aggregate information
 	var current_agency = budget[0].agency;
 	var number_of_agency = 1;
@@ -89,9 +91,13 @@ function analyze(budget, target_year){
 	//agency = crossData.dimension(function(d){return['Agency Name']});
 	//agency_filtered = agency.filter('Undistributed Offsetting Receipts')
 
+	//what works
+	//crossData.groupAll().reduceSum(function(d) { return replaceAll(',', '', d['2020']) }).value()
+	//crossData.dimension(function(d){ return d['Agency Name'] }).filter('Social Security Administration').groupAll().reduceSum(function(d) { return replaceAll(',', '', d['2020']) }).value()
+
 }
 
-crossData = crossfilter()
+//crossData = crossfilter()
 //This is where the file is being loaded -> then parsed
 d3.csv('data/budauth.csv', function(data) {
 	crossData.add([data])
@@ -243,7 +249,7 @@ function generateDonut(refData){
 	    	//fix the css file.....
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		d.data.circle = true; //this creates a new item in the object
-	    		d3.select(this).style('fill', 'maroon');//being overridden by CSS...
+	    		d3.select(this).style('fill', 'maroon');
 		    	d3.select('#chartArea').select('svg').append('circle')
 		      	.attr('class', 'distance-circle-comp')
 		      	.attr("cx", w/2)
@@ -257,10 +263,12 @@ function generateDonut(refData){
 					d.data.circle = false;
 				}
 	    })
+
 	drawTrace(lines);
 	drawTrace(lines2);
 	drawTrace(lines3);
 	drawTrace(lines4);
+
 	function drawTrace(lines){
 		//drawing the lines
 		//need to sort..due to d3 intracasies
@@ -299,7 +307,7 @@ function generateDonut(refData){
 		    .style("fill", "maroon")
 		    .attr('cx', coordinates[i][0])
 		    .attr('cy', coordinates[i][1])
-		    .attr('r', 5)
+		    .attr('r', 4)
 		}
 	}
 }
