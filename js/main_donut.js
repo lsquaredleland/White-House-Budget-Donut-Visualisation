@@ -211,6 +211,7 @@ function generateDonut(refData){
 	    .style('stroke-width', '1.5px')
 	    .on("mouseover", function(d) {
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    		//to check to not override selected bars
 	    		d3.select(this).style('fill', 'orange');
 	    	}
 
@@ -220,7 +221,7 @@ function generateDonut(refData){
 	      d3.selectAll('.distance-circle').remove();
 
 	      //creating the comparison bands
-	      var bands = [0]; //[-10,0,10]
+	      var bands = [0]; //[-10,0,10], more useful when scales are linear
 	      for(i in bands){
 	      	createComparisonCircles(bands[i]);
 	      }
@@ -246,20 +247,27 @@ function generateDonut(refData){
 
 	    	console.log(refData[d.data.id])
 
-	    	//fix the css file.....
+	    	//unique identifier for each arc
+	    	//what are other ways to associate a comparison circle with the arc?
+	    	var id = 'a' + String((d.startAngle + d.endAngle)/2).replace('.','')
+
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		d.data.circle = true; //this creates a new item in the object
 	    		d3.select(this).style('fill', 'maroon');
+
+	    		
 		    	d3.select('#chartArea').select('svg').append('circle')
 		      	.attr('class', 'distance-circle-comp')
+		      	.attr('id', id)
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
 						.attr("r", d.outerRadius);
 					console.log(d)
-					console.log(d.data)
+					console.log(d3.select('#' + id))
 				}
 				else{
-					d3.select('.distance-circle-comp').remove();
+					d3.select('#' + id).remove(); 
+					d3.select(this).style('fill', 'rgba(150, 255, 200, 0.74902)');
 					d.data.circle = false;
 				}
 	    })
