@@ -86,6 +86,14 @@ function analyze(budget, target_year){
 	console.log('num of Agencies with funding: ' + (grand_total - grand_total_0));
 	console.log('num of Agencies with abs funding > 10k: ' + (grand_total_abs10k));
 	console.log(refData)
+	Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+	console.log(Object.size(refData))
 	generateDonut(refData)
 	//crossData.dimension(function(d){console.log(d)});
 	//agency = crossData.dimension(function(d){return['Agency Name']});
@@ -116,13 +124,10 @@ function generateDonut(refData){
 	h = divH - margin.top - margin.bottom;
 	smallestDim = h < w ? h : w;
 
-	//var budget = [for (key of refData) refData[key].budget];
-	var budget = []
-	for(key in refData){
-		budget.push(refData[key].budget);
-	}
-
-	var max = d3.max(budget);
+	//finding the max, via method similar to array.prototype.map
+	var max = d3.max(Object.keys(refData).map(function(value, index) {
+		return refData[value].budget
+	}));
 	console.log("max: " + max);
 
 	var rad = d3.scale.pow()//log would be better
@@ -133,11 +138,9 @@ function generateDonut(refData){
 	var outerRadius = smallestDim / 4.5,
 	    innerRadius = outerRadius / 1;
 
-	//because cannot access object literals through accessor functions
-	//using arrays instead
-	var temp_list = []
+	var id_list = []
 	for(key in refData){
-		temp_list.push({ id: key });
+		id_list.push({ id: key });
 	}
 	var pie = d3.layout.pie()
 		.value(function(d){ return 10; })// all of input is bound, with i set as 'val'
@@ -160,14 +163,14 @@ function generateDonut(refData){
 	document.getElementById("chartArea").innerHTML = "";
 
 	//Attempted Canvas Integration
-	var sketch = d3.select('#chartArea').append('canvas')
+	/*var sketch = d3.select('#chartArea').append('canvas')
 			.attr("width", w)
 	    .attr("height", h)
-	    .attr('class', 'top-layer')
+	    .classed('top-layer', true)
 	    .style('position', 'absolute')
 	    .style('z-index', -1)
 	  .append("g")
-	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
+	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");*/
 	/*var context = sketch.getContext("2d");
 	context.rect(20,20,150,100);
 	context.stroke();*/
@@ -190,9 +193,19 @@ function generateDonut(refData){
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 24) + ")");
 	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));
 
+	//onhover comparison circle
+	d3.select('#chartArea').select('svg').append('circle')
+  	.classed('distance-circle', true)
+  	.attr("cx", w/2)
+		.attr("cy", h/2)
+		.attr("r", 0);
+
 	//drawing main chart
 	svg.selectAll("path")
-	    .data(pie(temp_list))
+			//use to take in id_list...but below doesn't require it...
+	    .data(pie(Object.keys(refData).map(function(value, index) {
+				return {id: value};
+			})))
 	  .enter().append("path")
 	    .each(function(d) { 
 	    	d.outerRadius = innerRadius + rad(ref(refData, d.data.id,'budget'));
@@ -206,9 +219,8 @@ function generateDonut(refData){
 	    	lines4.push([alpha, l - 2])
 	    })
 	    .attr("d", arc)
-	    .style('fill', 'rgba(150, 255, 200, 0.74902)')
-	    .style('stroke', '#333')
-	    .style('stroke-width', '1.5px')
+	    .classed('arcs', true)
+	    .style('fill', 'rgb(150, 255, 200)')
 	    .on("mouseover", function(d) {
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		//to check to not override selected bars
@@ -218,20 +230,13 @@ function generateDonut(refData){
 	    	d3.select("#valueOutput").html(ref(refData, d.data.id,'agency'));
 	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
-	      d3.selectAll('.distance-circle').remove();
-
-	      //creating the comparison bands
-	      var bands = [0]; //[-10,0,10], more useful when scales are linear
-	      for(i in bands){
-	      	createComparisonCircles(bands[i]);
-	      }
-	      function createComparisonCircles(modifier){
-	      	d3.select('#chartArea').select('svg').append('circle')
-		      	.attr('class', 'distance-circle')
-		      	.attr("cx", w/2)
-						.attr("cy", h/2)
-						.attr("r", d.outerRadius + modifier);
-	      }
+	      //animation for .distance-circle to change position over time
+	      d3.selectAll('.distance-circle')
+	      	.transition()
+	      	.delay(100)
+	      	.duration(500)
+	      	//.ease('bounce')
+	      	.attr('r', d.outerRadius)
 	    })
 	    .on("mouseout", function(d){
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
@@ -239,7 +244,7 @@ function generateDonut(refData){
 	    			.transition()
 	    			.delay(125)
 	    			.duration(250)
-	    			.style('fill', 'rgba(150, 255, 200, 0.74902)');
+	    			.style('fill', 'rgb(150, 255, 200)');
 	    	}
 	    })
 	    .on("click", function(d) {
@@ -257,17 +262,25 @@ function generateDonut(refData){
 
 	    		
 		    	d3.select('#chartArea').select('svg').append('circle')
-		      	.attr('class', 'distance-circle-comp')
+		      	.classed('distance-circle-comp', true)
+		      	.attr("r", smallestDim)
 		      	.attr('id', id)
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
+						.transition()
+						.duration(1000)
 						.attr("r", d.outerRadius);
 					console.log(d)
 					console.log(d3.select('#' + id))
 				}
 				else{
-					d3.select('#' + id).remove(); 
-					d3.select(this).style('fill', 'rgba(150, 255, 200, 0.74902)');
+					d3.select('#' + id)
+						.transition()
+						.delay(100)
+						.duration(1000)
+						.attr("r", smallestDim)
+						.remove(); 
+					d3.select(this).style('fill', 'orange');
 					d.data.circle = false;
 				}
 	    })
@@ -293,7 +306,7 @@ function generateDonut(refData){
 			lines[i] = [x,-y]
 		}
 		svg.append("path")
-	    .attr("class", "line")
+	    .classed("line", true)
 	    .style("fill", "none")
 	    .style("stroke-width", "1px")
 	    .style("stroke", "black")
@@ -312,7 +325,11 @@ function generateDonut(refData){
 		}
 		for(i in coordinates){
 			svg.append("circle")
-		    .style("fill", "maroon")
+				.classed('circles', function(){
+					if(i%2 == 0){ //i references the items in coordinatess
+						return true;
+					} else return false;
+				})
 		    .attr('cx', coordinates[i][0])
 		    .attr('cy', coordinates[i][1])
 		    .attr('r', 4)

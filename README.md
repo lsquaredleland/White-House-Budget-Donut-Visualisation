@@ -15,11 +15,11 @@ Use: D3.js
 ###Todo:
 * Find a better way to unite the budget and refData array, and how they access it each other, etc
 * Optimisation in terms of smoothness ->  currrently lags to an extent
- * use canvas instead?
+* use canvas instead?
+* Keep 1 comparison circle, have it move between arc rather than draw, delete, redraw. (What is more efficient -> show/hide vs draw/delete). Experiment with different kinds of animations, have a tempory line be draw until the original catches up??
 
 
 ###Curiosities
-* Try to turn into a isotype?
 * For example try to use circles?
 
 

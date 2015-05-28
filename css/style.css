@@ -28,3 +28,21 @@ body{
 	stroke: maroon;
 	stroke-dasharray: 20, 10, 5, 10, 5, 10;
 }
+
+.circles{
+	fill: maroon;
+}
+.circles:hover{
+	fill: teal;
+}
+
+.arcs{
+	/*
+	 * cannot use css for things that have complicated manipulations
+	 * -> multiple colours rather than a binary thing
+	 * -> lack of delays and such, js offers more customisation 
+	*/
+	fill: teal;
+	stroke: #333;
+ 	stroke-width: 1.5px;
+}
