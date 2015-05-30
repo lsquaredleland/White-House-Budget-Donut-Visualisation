@@ -16,7 +16,7 @@ Use: D3.js
 * Find a better way to unite the budget and refData array, and how they access it each other, etc
 * Optimisation in terms of smoothness ->  currrently lags to an extent
 * use canvas instead?
-* Keep 1 comparison circle, have it move between arc rather than draw, delete, redraw. (What is more efficient -> show/hide vs draw/delete). Experiment with different kinds of animations, have a tempory line be draw until the original catches up??
+* Make comparison circles canvas based rather than svg -> animation drops framerate...
 
 
 ###Curiosities

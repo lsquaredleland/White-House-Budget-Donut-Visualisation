@@ -162,18 +162,26 @@ function generateDonut(refData){
 	//clear graph on load
 	document.getElementById("chartArea").innerHTML = "";
 
+
 	//Attempted Canvas Integration
-	/*var sketch = d3.select('#chartArea').append('canvas')
+	var sketch = d3.select('#chartArea').append('canvas')
 			.attr("width", w)
 	    .attr("height", h)
 	    .classed('top-layer', true)
 	    .style('position', 'absolute')
 	    .style('z-index', -1)
-	  .append("g")
-	    .attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");*/
-	/*var context = sketch.getContext("2d");
-	context.rect(20,20,150,100);
-	context.stroke();*/
+	  //.append("g") //this breaks code
+	    //.attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
+	var context = sketch.node().getContext("2d");
+  context.beginPath();
+  context.arc(w / 2, h / 2, 300, 0, 2 * Math.PI, false);
+  context.fillStyle = 'lime';
+  context.fill();
+  context.lineWidth = 5;
+  context.strokeStyle = '#003300';
+  context.stroke();
+  
+
 
 	var svg = d3.select("#chartArea").append("svg")
 	    .attr("width", w)
@@ -220,7 +228,7 @@ function generateDonut(refData){
 	    })
 	    .attr("d", arc)
 	    .classed('arcs', true)
-	    .style('fill', 'rgb(150, 255, 200)')
+	    .style('fill', 'rgb(250, 255, 200)')
 	    .on("mouseover", function(d) {
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		//to check to not override selected bars
@@ -244,7 +252,7 @@ function generateDonut(refData){
 	    			.transition()
 	    			.delay(125)
 	    			.duration(250)
-	    			.style('fill', 'rgb(150, 255, 200)');
+	    			.style('fill', 'rgb(250, 255, 200)');
 	    	}
 	    })
 	    .on("click", function(d) {
@@ -254,21 +262,25 @@ function generateDonut(refData){
 
 	    	//unique identifier for each arc
 	    	//what are other ways to associate a comparison circle with the arc?
-	    	var id = 'a' + String((d.startAngle + d.endAngle)/2).replace('.','')
+	    	var id = 'a' + d.data.id 
+
+	    	//Benefit of id reference -> can access central data from anything (as long have it)
+	    	//want to have arc come in at a constant rate (pixels/milli)
+	    	var time = Math.abs(1/(rad(ref(refData, d.data.id,'budget')) + innerRadius)*1000 * 500);
 
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		d.data.circle = true; //this creates a new item in the object
 	    		d3.select(this).style('fill', 'maroon');
 
-	    		
+	    		//note there is no data associated with this. [lack of enter()]
 		    	d3.select('#chartArea').select('svg').append('circle')
-		      	.classed('distance-circle-comp', true)
+		      	.classed('distance-circle-comp', true) //should make this canvas instead
 		      	.attr("r", smallestDim)
 		      	.attr('id', id)
 		      	.attr("cx", w/2)
 						.attr("cy", h/2)
 						.transition()
-						.duration(1000)
+						.duration(time) //why does frame rate drop more on fly in than flyout
 						.attr("r", d.outerRadius);
 					console.log(d)
 					console.log(d3.select('#' + id))
@@ -277,7 +289,7 @@ function generateDonut(refData){
 					d3.select('#' + id)
 						.transition()
 						.delay(100)
-						.duration(1000)
+						.duration(time*2)
 						.attr("r", smallestDim)
 						.remove(); 
 					d3.select(this).style('fill', 'orange');
@@ -339,6 +351,7 @@ function generateDonut(refData){
 
 //referencing a dataset rather than binding it to the DOM
 //Is it more resource effective?
+//Should probably set the refData so do not always have to pass it in -> pass only id + param
 function ref(refData, id, param){
 	return refData[id][param];
 }
