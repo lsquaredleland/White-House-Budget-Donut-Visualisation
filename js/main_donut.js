@@ -207,6 +207,15 @@ function generateDonut(refData){
 	          context.stroke();
 	          break;
 	        }
+	       	default: { //using ID as a default, to get around lack?? of classes
+	       		context.strokeStyle = element.getAttribute("strokeStyle");
+	          context.beginPath();
+	          context.arc(element.getAttribute("x"), element.getAttribute("y"), element.getAttribute("radius"), 0, 2 * Math.PI);
+					  context.lineWidth = 1;
+					  context.strokeStyle = '#003300';
+	          context.stroke();
+	          break;
+	       	}
 	      }
 	    }
 	  });
@@ -277,15 +286,15 @@ function generateDonut(refData){
 	      d3.select("#valueSource").html('$' + formatNumber(ref(refData, d.data.id,'budget')));
 
 	      //animation for .distance-circle to change position over time
-	      d3.selectAll('.distance-circle')
+	     /* d3.selectAll('.distance-circle')
 	      	.transition()
 	      	.delay(100)
 	      	.duration(500)
 	      	//.ease('bounce')
-	      	.attr('r', d.outerRadius)
+	      	.attr('r', d.outerRadius)*/
 
 
-	      d3.select("circle") 
+	      d3.select("circle") //canvas element
 		    	.transition()
 		    	.delay(100)
 		      .duration(500)
@@ -318,7 +327,7 @@ function generateDonut(refData){
 	    		d3.select(this).style('fill', 'maroon');
 
 	    		//note there is no data associated with this. [lack of enter()]
-		    	d3.select('#chartArea').select('svg').append('circle')
+		    	/*d3.select('#chartArea').select('svg').append('circle')
 		      	.classed('distance-circle-comp', true) //should make this canvas instead
 		      	.attr("r", smallestDim)
 		      	.attr('id', id)
@@ -326,17 +335,34 @@ function generateDonut(refData){
 						.attr("cy", h/2)
 						.transition()
 						.duration(time) //why does frame rate drop more on fly in than flyout
-						.attr("r", d.outerRadius);
+						.attr("r", d.outerRadius);*/
+
+					sketch.append("custom:" + id) //canvas comparison circle
+				    .attr("x", w/2)
+				    .attr("y", h/2)
+				    .attr("radius", smallestDim)
+				    .attr("strokeStyle", "black")
+				    .transition()
+				    .duration(time)
+				    .attr("radius", d.outerRadius)
+
 					console.log(d)
 					console.log(d3.select('#' + id))
 				}
 				else{
-					d3.select('#' + id)
+					/*d3.select('#' + id)
 						.transition()
 						.delay(100)
 						.duration(time*2)
 						.attr("r", smallestDim)
+						.remove(); */
+					d3.select(id) //canvas comparison circle
+						.transition()
+						.delay(100)
+						.duration(time*2)
+						.attr("radius", smallestDim)
 						.remove(); 
+
 					d3.select(this).style('fill', 'orange');
 					d.data.circle = false;
 				}
