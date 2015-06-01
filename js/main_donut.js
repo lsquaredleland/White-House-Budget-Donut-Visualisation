@@ -164,23 +164,54 @@ function generateDonut(refData){
 
 
 	//Attempted Canvas Integration
+	d3.ns.prefix.custom = "http://github.com/mbostock/d3/examples/dom";
 	var sketch = d3.select('#chartArea').append('canvas')
 			.attr("width", w)
 	    .attr("height", h)
 	    .classed('top-layer', true)
 	    .style('position', 'absolute')
 	    .style('z-index', -1)
+	    .call(custom)
 	  //.append("g") //this breaks code
 	    //.attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
-	var context = sketch.node().getContext("2d");
-  context.beginPath();
-  context.arc(w / 2, h / 2, 300, 0, 2 * Math.PI, false);
-  context.fillStyle = 'lime';
-  context.fill();
-  context.lineWidth = 5;
-  context.strokeStyle = '#003300';
-  context.stroke();
-  
+	//How to select the item below for redrawing?
+
+	function custom(selection) {
+	  selection.each(function() {
+	    var root = this,
+	        canvas = root.parentNode.appendChild(document.createElement("canvas")),
+	        context = canvas.getContext("2d");
+
+	    canvas.style.position = "absolute";
+	    canvas.style.top = root.offsetTop + "px";
+	    canvas.style.left = root.offsetLeft + "px";
+	    canvas.style['z-index'] = -1;
+
+	    d3.timer(redraw);
+
+	    // Clear the canvas and then iterate over child elements.
+	    function redraw() {
+	      canvas.width = root.getAttribute("width");
+	      canvas.height = root.getAttribute("height");
+	      for (var child = root.firstChild; child; child = child.nextSibling) draw(child);
+	    }
+
+	    function draw(element) { //how to assign a class attribute to this???
+	      switch (element.tagName) {
+	        case "circle": {
+	          context.strokeStyle = element.getAttribute("strokeStyle");
+	          context.beginPath();
+	          context.arc(element.getAttribute("x"), element.getAttribute("y"), element.getAttribute("radius"), 0, 2 * Math.PI);
+					  context.lineWidth = 1;
+					  context.strokeStyle = '#003300';
+	          context.stroke();
+	          break;
+	        }
+	      }
+	    }
+	  });
+	};
+
 
 
 	var svg = d3.select("#chartArea").append("svg")
@@ -201,12 +232,19 @@ function generateDonut(refData){
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 24) + ")");
 	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));
 
+
 	//onhover comparison circle
 	d3.select('#chartArea').select('svg').append('circle')
   	.classed('distance-circle', true)
   	.attr("cx", w/2)
 		.attr("cy", h/2)
 		.attr("r", 0);
+	sketch.append("custom:circle")
+    .attr("x", w/2)
+    .attr("y", h/2)
+    .attr("radius", 0)
+    .attr("strokeStyle", "white")
+
 
 	//drawing main chart
 	svg.selectAll("path")
@@ -245,6 +283,13 @@ function generateDonut(refData){
 	      	.duration(500)
 	      	//.ease('bounce')
 	      	.attr('r', d.outerRadius)
+
+
+	      d3.select("circle") 
+		    	.transition()
+		    	.delay(100)
+		      .duration(500)
+		      .attr("radius", d.outerRadius)
 	    })
 	    .on("mouseout", function(d){
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){

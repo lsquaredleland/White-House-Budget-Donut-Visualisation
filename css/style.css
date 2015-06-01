@@ -21,12 +21,12 @@ body{
 	fill: none;
 	stroke: orange;
 	stroke-width: 1px;
-	stroke-dasharray: 1px;	
+	stroke-dasharray: 4, 2;	/*removing might improve performance*/
 }
 
 .distance-circle-comp{
 	stroke: maroon;
-	stroke-dasharray: 20, 10, 5, 10, 5, 10;
+	stroke-dasharray: 20, 10, 5, 10, 5, 10; /*removing might improve performance*/
 }
 
 .circles{
