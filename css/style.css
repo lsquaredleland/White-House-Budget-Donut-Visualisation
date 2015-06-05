@@ -46,3 +46,14 @@ body{
 	stroke: #333;
  	stroke-width: 1.5px;
 }
+
+.valueText {
+  color: black;
+  background-color: none;
+  text-align: center;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
