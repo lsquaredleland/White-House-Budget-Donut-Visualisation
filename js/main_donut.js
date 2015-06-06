@@ -142,15 +142,23 @@ function generateDonut(refData){
 	var max = d3.max(Object.keys(refData).map(function(value, index) {
 		return refData[value].budget_positive
 	}));
-	console.log("max: " + max);
+	var min = d3.min(Object.keys(refData).map(function(value, index) {
+		return refData[value].budget_negative
+	}));
+	console.log("max:", max, min	);
+
+	var outerRadius = smallestDim / 4.5,
+	    innerRadius = outerRadius / 1;
 
 	var rad = d3.scale.pow()//log would be better
 		.exponent(.25)
     .domain([0, max])
-    .rangeRound([0, smallestDim / 3.5]);
+    .rangeRound([0, smallestDim/2 - innerRadius]);//seems rather arbitrary...find a better way
+  var rad_in = d3.scale.pow()
+		.exponent(.25)
+    .domain([min, 0])
+    .rangeRound([-innerRadius, 0]);
 
-	var outerRadius = smallestDim / 4.5,
-	    innerRadius = outerRadius / 1;
 
 	var id_list = []
 	for(key in refData){
@@ -188,40 +196,40 @@ function generateDonut(refData){
 	    //.attr("transform", "translate(" + w / 2 + "," + (h) / 2 + ")");
 	//How to select the item below for redrawing?
 
-	function custom(selection) {
-	  selection.each(function() {
-	    var root = this;
-      var canvas = root.parentNode.appendChild(document.createElement("canvas"));
-      var context = canvas.getContext("2d");
+function custom(selection) {
+  selection.each(function() {
+    var root = this;
+    var canvas = root.parentNode.appendChild(document.createElement("canvas"));
+    var context = canvas.getContext("2d");
 
-	    canvas.style.position = "absolute";
-	    canvas.style.top = root.offsetTop + "px";
-	    canvas.style.left = root.offsetLeft + "px";
-	    canvas.style['z-index'] = -1;
+    canvas.style.position = "absolute";
+    canvas.style.top = root.offsetTop + "px";
+    canvas.style.left = root.offsetLeft + "px";
+    canvas.style['z-index'] = -1;
 
-	    d3.timer(redraw);
+    d3.timer(redraw);
 
-	    // Clear the canvas and then iterate over child elements.
-	    function redraw() {
-	      canvas.width = root.getAttribute("width");
-	      canvas.height = root.getAttribute("height");
-	      for (var child = root.firstChild; child; child = child.nextSibling) draw(child);
-	    }
+    // Clear the canvas and then iterate over child elements.
+    function redraw() {
+      canvas.width = root.getAttribute("width");
+      canvas.height = root.getAttribute("height");
+      for (var child = root.firstChild; child; child = child.nextSibling) draw(child);
+    }
 
-	    function draw(element) { //how to assign a class attribute to this???
-	      switch (element.tagName.split("-")[0]) { //sketched way to assign classes....
-	        case "circle": {
-	          context.strokeStyle = element.getAttribute("strokeStyle");
-	          context.beginPath();
-	          context.arc(element.getAttribute("x"), element.getAttribute("y"), element.getAttribute("radius"), 0, 2 * Math.PI);
-					  context.lineWidth = 1;
-	          context.stroke();
-	          break;
-	        }
-	      }
-	    }
-	  });
-	};
+    function draw(element) { //how to assign a class attribute to this???
+      switch (element.tagName.split("-")[0]) { //sketched way to assign classes/ID's....
+        case "circle": {
+          context.strokeStyle = element.getAttribute("strokeStyle");
+          context.beginPath();
+          context.arc(element.getAttribute("x"), element.getAttribute("y"), element.getAttribute("radius"), 0, 2 * Math.PI);
+				  context.lineWidth = 1;
+          context.stroke();
+          break;
+        }
+      }
+    }
+  });
+};
 
 	var svg = d3.select("#chartArea").append("svg")
 	    .attr("width", w)
@@ -241,7 +249,7 @@ function generateDonut(refData){
 		.attr("transform","translate(" + innerRadius/20 + "," + (innerRadius/24 + 12) + ")");
 	d3.select('#valueSource').html("Total Budget: " + formatNumber(d3.sum(budget)));*/
 
-	var valueText = {h: 200, w: 400};
+	var valueText = {h: 100, w: 400};
 	svg.append("foreignObject")
 		.attr("x", -valueText.w/2)
 		//.attr("y", -valueText.h/2)
@@ -274,7 +282,7 @@ function generateDonut(refData){
 	  .enter().append("path")
 	    .each(function(d) { 
 	    	d.outerRadius = innerRadius + rad(refData[d.data.id]['budget_positive']);
-	    	d.innerRadius = innerRadius + rad(refData[d.data.id]['budget_negative']);
+	    	d.innerRadius = innerRadius + rad_in(refData[d.data.id]['budget_negative']); //switch to different internal scale??
 
 	    	//How to change the inner radius?? without going negative????
 	    	//So that can go in + out... relative to baseline...
@@ -348,12 +356,12 @@ function generateDonut(refData){
 	      	//.ease('bounce')
 	      	.attr('r', d.outerRadius)*/
 
-
+	      //Should have multiple lines for budget, +, -
 	      d3.select("circle") //canvas element
 		    	.transition()
 		    	.delay(100)
 		      .duration(500)
-		      .attr("radius", d.outerRadius)
+		      .attr("radius", rad(refData[d.data.id]['budget']) + innerRadius)
 	    })
 	    .on("mouseout", function(d){
 	    	if(d.data.circle == true){
@@ -390,6 +398,9 @@ function generateDonut(refData){
 	    	//want to have arc come in at a constant rate (pixels/milli)
 	    	var time = Math.abs(1/(rad(refData[d.data.id]['budget']) + innerRadius)*1000 * 500);
 
+	    	svg.selectAll("." + id)
+				  .remove()
+
 	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
 	    		d.data.circle = true; //this creates a new item in the object
 	    		d3.select(this).style('fill', 'maroon');
@@ -404,6 +415,7 @@ function generateDonut(refData){
 						.transition()
 						.duration(time) //why does frame rate drop more on fly in than flyout
 						.attr("r", d.outerRadius);*/
+
 
 					sketch.append("custom:circle-" + id) //canvas comparison circle
 				    .attr("x", w/2)
@@ -435,6 +447,14 @@ function generateDonut(refData){
 					d.data.circle = false;
 				}
 	    })
+
+	d3.select('#chartArea').select('svg').append('circle')
+  	.attr("r", innerRadius)
+  	.attr("cx", w/2)
+		.attr("cy", h/2)
+		.style("fill", 'none')
+		.style("stroke-width", "1px")
+		.style("stroke", "black")
 
 	for(l in lines){
 		drawTrace(lines[l]);
