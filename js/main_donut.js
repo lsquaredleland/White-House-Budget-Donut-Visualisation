@@ -1,6 +1,6 @@
-var budget = []; //only modified once
+var budget = []; //only modified once; all the data curated slightly
 
-//crossData = crossfilter()
+var crossData = new crossfilter()
 //This is where the file is being loaded -> then parsed
 d3.csv('data/budauth.csv', function(data) {
 	crossData.add([data])
@@ -28,6 +28,8 @@ function process(d){
 		yr2018: d['2018'] == '0' ? 0 : +replaceAll(',', '', d['2018']),
 		yr2020: d['2020'] == '0' ? 0 : +replaceAll(',', '', d['2020'])
 	});
+	if(budget.length == 4441)
+		console.log(d)
 	if(budget.length == 4442){
 		analyze(budget, 'yr2020');
 	}
@@ -48,7 +50,6 @@ function overview(budget){
 	yearTotalBudget(budget, "yr2018");
 	yearTotalBudget(budget, "yr2020");
 }
-crossData = crossfilter()
 function analyze(budget, target_year){
 	//this is to generate aggregate information
 	var current_agency = budget[0].agency;
@@ -125,7 +126,15 @@ function analyze(budget, target_year){
 
 	//what works
 	//crossData.groupAll().reduceSum(function(d) { return replaceAll(',', '', d['2020']) }).value()
-	//crossData.dimension(function(d){ return d['Agency Name'] }).filter('Social Security Administration').groupAll().reduceSum(function(d) { return replaceAll(',', '', d['2020']) }).value()
+	var agencyName = crossData.dimension(function(d){ 
+		return d['Agency Name'] 
+	})
+	agencyName.filter('Social Security Administration').groupAll().reduceSum(function(d) { 
+		return replaceAll(',', '', d['2020']) 
+	}).value()
+	agencyName.filter('Department of Health and Human Services').groupAll().reduceSum(function(d) { 
+		return replaceAll(',', '', d['2020']) 
+	}).value()
 
 }
 
@@ -150,7 +159,7 @@ function custom(selection) {
       for (var child = root.firstChild; child; child = child.nextSibling) draw(child);
     }
 
-  	//for dashed lines
+  	//for dashed lines, might improve performance to move outside...
 		function calcPointsCirc( cx,cy, rad, dashLength){
 			var n = rad/dashLength,
 			  alpha = Math.PI * 2 / n,
@@ -214,11 +223,12 @@ function generateDonut(refData){
 	var outerRadius = smallestDim / 4.5,
 	    innerRadius = outerRadius / 1;
 
-	var rad = d3.scale.pow()//log would be better
+	var scale = {}
+	scale.out = d3.scale.pow()//log would be better
 		.exponent(.25)
     .domain([0, max])
     .rangeRound([0, smallestDim/2 - innerRadius]);//seems rather arbitrary...find a better way
-  var rad_in = d3.scale.pow()
+  scale.in = d3.scale.pow()
 		.exponent(.25)
     .domain([min, 0])
     .rangeRound([-innerRadius, 0]);
@@ -288,8 +298,9 @@ function generateDonut(refData){
 			})))
 	  .enter().append("path")
 	    .each(function(d) { 
-	    	d.outerRadius = innerRadius + rad(refData[d.data.id]['budget_positive']);
-	    	d.innerRadius = innerRadius + rad_in(refData[d.data.id]['budget_negative']); //switch to different internal scale??
+	    	d.outerRadius = innerRadius + scale.out(refData[d.data.id]['budget_positive']);
+	    	d.innerRadius = innerRadius + scale.in(refData[d.data.id]['budget_negative']); //switch to different internal scale??
+	    	d.data.circle = false;
 
 	    	//How to change the inner radius?? without going negative????
 	    	//So that can go in + out... relative to baseline...
@@ -304,7 +315,7 @@ function generateDonut(refData){
 	    	lines[3].push([alpha, l - 2])
 
 
-	    	l = innerRadius + rad(refData[d.data.id]['budget']);
+	    	l = innerRadius + scale.out(refData[d.data.id]['budget']);
     		var x0 = l * Math.sin(alpha);
 				var y0 = l * Math.cos(alpha);
 				var newAngle = alpha + Math.PI/2;
@@ -314,10 +325,10 @@ function generateDonut(refData){
 				var x1 = x0 - newl * Math.sin(newAngle)
 				var y1 = y0 - newl * Math.cos(newAngle)
 
-				svg.append("line")
+				svg.append("line") //this accidently gets removed....
 			    .style("stroke-width", "2px")
 			    .style("stroke", 'black')
-			    .classed('a' + d.data.id + ' budget', true)
+			    .classed('a-line-' + d.data.id + ' budget', true)
 			    .attr("x1", x1)
 			    .attr("x2", x2)
 			    .attr("y1", -y1)
@@ -334,7 +345,7 @@ function generateDonut(refData){
 	    .classed('arcs', true)
 	    .style('fill', 'rgb(250, 255, 200)')
 	    .on("mouseover", function(d) {
-	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    	if(d.data.circle == false){
 	    		//to check to not override selected bars
 	    		d3.select(this).style('fill', 'orange');
 	    	}
@@ -358,7 +369,7 @@ function generateDonut(refData){
 						svg.append("line")
 					    .style("stroke-width", "2.5px")
 					    .style("stroke", 'orange')
-					    .attr("class", 'a' + d.data.id)
+					    .classed('a' + d.data.id, true)
 					    .attr("x1", x1)
 					    .attr("x2", x2)
 					    .attr("y1", -y1)
@@ -378,7 +389,7 @@ function generateDonut(refData){
 	      	'<b>' + refData[d.data.id]['agency'] + '</b><br>' + '<table align="center">' + 
 	      	'<tr><td align="center">' + 'Budget Positive:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_positive']) + '</td></tr>' + 
 	      	'<tr><td align="center">' + 'Budget Negative:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_negative']) + '</td></tr>' + 
-	      	'<tr id="aggregate"><td align="center">' + 'Budget:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget']) + '</td></tr>' + '<table'
+	      	'<tr id="aggregate"><td align="center">' + 'Budget Total:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget']) + '</td></tr>' + '<table'
 	      )
 
 	      //animation for .distance-circle to change position over time
@@ -394,7 +405,7 @@ function generateDonut(refData){
 		    	.transition()
 		    	.delay(100)
 		      .duration(500)
-		      .attr("r", rad(refData[d.data.id]['budget']) + innerRadius)
+		      .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
 	    })
 	    .on("mouseout", function(d){
 	    	if(d.data.circle == true){
@@ -410,7 +421,7 @@ function generateDonut(refData){
 				    .style('stroke', 'maroon')
 				    .remove()
 	    	}
-	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    	if(d.data.circle == false){
 	    		d3.select(this)
 	    			.transition()
 	    			.delay(125)
@@ -429,12 +440,13 @@ function generateDonut(refData){
 
 	    	//Benefit of id reference -> can access central data from anything (as long have it)
 	    	//want to have arc come in at a constant rate (pixels/milli)
-	    	var time = Math.abs(1/(rad(refData[d.data.id]['budget']) + innerRadius)*1000 * 500);
+	    	var time = Math.abs((scale.out(refData[d.data.id]['budget']) + innerRadius - smallestDim) * 2);
+	    	console.log(time)
 
 	    	svg.selectAll("." + id)
 				  .remove()
 
-	    	if(typeof d.data.circle == 'undefined' || d.data.circle == false){
+	    	if(d.data.circle == false){
 	    		d.data.circle = true; //this creates a new item in the object
 	    		d3.select(this).style('fill', 'maroon');
 
@@ -457,10 +469,9 @@ function generateDonut(refData){
 				    .attr("strokeStyle", "maroon")
 				    .transition()
 				    .duration(time)
-				    .attr("r", d.outerRadius)
+				    .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
 
 					console.log(d)
-					console.log(d3.select('#' + id))
 				}
 				else{
 					/*d3.select('#' + id)

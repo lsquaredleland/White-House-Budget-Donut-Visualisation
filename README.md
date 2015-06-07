@@ -23,6 +23,7 @@ Use: D3.js
 
 ###Curiosities
 * For example try to use circles?
+* Compare performance of dashed canvas comparison lines and svg based ones
 
 
 * draw canvas ontop of svg -> set z-scores + fix positions
