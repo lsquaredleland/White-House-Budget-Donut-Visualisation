@@ -247,6 +247,7 @@ function generateDonut(refData){
 	    //.innerRadius(innerRadius);
 
 	var lines = [[],[],[],[]];
+	var vLine = []
 
 	var valueline = d3.svg.line()
 		.interpolate("cardinal-closed")  //step-after looks cool
@@ -290,7 +291,161 @@ function generateDonut(refData){
     .attr("strokeStyle", "orange")
 
 
+  var mainArcs = {}
+	mainArcs.mouseover = function(d) {
+		if(d.data.circle == false){
+			//to check to not override selected bars
+			d3.select(this).style('fill', 'orange');
+		}
+
+		if(d.data.circle == true){
+			/*notOnLines = true
+			//d3.select(this).style('fill', 'orange');
+			var alpha = (d.startAngle + d.endAngle)/2;
+			//stripes -> what is a better way to communicate overlap??
+			for(var l = d.innerRadius; l < d.outerRadius; l+=5){
+	  		var x0 = l * Math.sin(alpha);
+				var y0 = l * Math.cos(alpha);
+
+				//find tangental line
+				var newAngle = alpha + Math.PI/2;
+				var newl = l * Math.PI / Object.keys(refData).length;
+				var x2 = x0 + newl * Math.sin(newAngle)
+				var y2 = y0 + newl * Math.cos(newAngle)
+				var x1 = x0 - newl * Math.sin(newAngle)
+				var y1 = y0 - newl * Math.cos(newAngle)
+
+				svg.append("line")
+			    .style("stroke-width", "2.5px")
+			    .style("stroke", 'orange')
+			    .classed('a' + d.data.id, true)
+			    .attr("x1", x1)
+			    .attr("x2", x2)
+			    .attr("y1", -y1)
+			    .attr("y2", -y2)
+			    //Need to add action listener so that if this is clicked same behaviour as bar...
+			    //can pass in a method that will do it..
+			}*/
+		}
+
+		/*d3.select("#valueOutput").html(refData[d.data.id]['agency']);
+	  d3.select("#valueSource").html(
+	  	'<tspan x="1">Budget Positive: $' + formatNumber(refData[d.data.id]['budget_positive']) + '</tspan>' + 
+	  	'<tspan x="1" dy="15">Budget Negative: $' + formatNumber(refData[d.data.id]['budget_negative']) + '</tspan>' + 
+	  	'<tspan x="1" dy="15">Budget: $' + formatNumber(refData[d.data.id]['budget']) + '</tspan>'
+	  	);*/
+	  d3.select(".valueText").html( //turn this into a table
+	  	'<b>' + refData[d.data.id]['agency'] + '</b><br>' + '<table align="center">' + 
+	  	'<tr><td align="center">' + 'Budget Positive:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_positive']) + '</td></tr>' + 
+	  	'<tr><td align="center">' + 'Budget Negative:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_negative']) + '</td></tr>' + 
+	  	'<tr id="aggregate"><td align="center">' + 'Budget Total:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget']) + '</td></tr>' + '<table'
+	  )
+
+	  //animation for .distance-circle to change position over time
+	 	 /*d3.selectAll('.distance-circle')
+	  	.transition()
+	  	.delay(100)
+	  	.duration(500)
+	  	//.ease('bounce')
+	  	.attr('r', d.outerRadius)*/
+
+	  //Should have multiple lines for budget, +, -
+	  d3.select("circle") //canvas element
+	  	.transition()
+	  	.delay(100)
+	    .duration(500)
+	    .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
+	}
+	mainArcs.mouseout = function(d){
+		if(d.data.circle == true && notOnLines){ //Need to check to see if not on the bands....
+			/*d3.select(this)
+				.transition()
+				.delay(125)
+				.duration(250)
+				.style('fill', 'maroon');*/
+
+			svg.selectAll(".a" + d.data.id)
+		    .transition()
+		    .duration(500)
+		    .style('stroke', 'maroon')
+		    .remove()
+		}
+		if(d.data.circle == false){
+			d3.select(this)
+				.transition()
+				.delay(125)
+				.duration(250)
+				.style('fill', 'rgb(250, 255, 200)');
+		}
+	}
+	mainArcs.click = function(d) {
+		console.log(refData[d.data.id]['details'])
+
+		console.log(refData[d.data.id])
+
+		//unique identifier for each arc
+		//what are other ways to associate a comparison circle with the arc?
+		var id = 'a' + d.data.id 
+
+		//Benefit of id reference -> can access central data from anything (as long have it)
+		//want to have arc come in at a constant rate (pixels/milli)
+		var time = Math.abs((scale.out(refData[d.data.id]['budget']) + innerRadius - smallestDim) * 2);
+		console.log(time)
+
+		svg.selectAll("." + id)
+		  .remove()
+
+		if(d.data.circle == false){
+			d.data.circle = true; //this creates a new item in the object
+			d3.select(this).style('fill', 'maroon');
+
+			//note there is no data associated with this. [lack of enter()]
+	  	/*d3.select('#chartArea').select('svg').append('circle')
+	    	.classed('distance-circle-comp', true) //should make this canvas instead
+	    	.attr("r", smallestDim)
+	    	.attr('id', id)
+	    	.attr("cx", w/2)
+				.attr("cy", h/2)
+				.transition()
+				.duration(time) //why does frame rate drop more on fly in than flyout
+				.attr("r", d.outerRadius);*/
+
+
+			sketch.append("custom:circle-" + id) //canvas comparison circle
+		    .attr("x", w/2)
+		    .attr("y", h/2)
+		    .attr("r", smallestDim)
+		    .attr("strokeStyle", "maroon")
+		    .transition()
+		    .duration(time)
+		    .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
+
+			console.log(d)
+		}
+		else{
+			/*d3.select('#' + id)
+				.transition()
+				.delay(100)
+				.duration(time*2)
+				.attr("r", smallestDim)
+				.remove(); 	*/
+
+			//if click on the dashed bar -> should also remove the bars
+			d3.select('circle-' + id) //canvas comparison circle
+				.transition()
+				.delay(100)
+				.duration(time*2)
+				.attr("r", smallestDim)
+				.remove(); 
+
+			d3.select(this).style('fill', 'orange');
+			d.data.circle = false;
+		}
+	}
+	mainArcs.each = function(d) {}
+
 	//drawing main chart
+	var notOnLines = false;
 	svg.selectAll("path")
 			//use to take in id_list...but below doesn't require it...
 	    .data(pie(Object.keys(refData).map(function(value, index) {
@@ -307,6 +462,7 @@ function generateDonut(refData){
 
 	    	//for the lines
 	    	var alpha = (d.startAngle + d.endAngle)/2;
+	    	vLine.push([alpha, d.innerRadius, d.outerRadius])
 	    	var l = d.outerRadius > outerRadius ? d.outerRadius + 20 : d.outerRadius - 20
 
 	    	lines[0].push([alpha, l])
@@ -314,7 +470,8 @@ function generateDonut(refData){
 	    	lines[2].push([alpha, l - 10])
 	    	lines[3].push([alpha, l - 2])
 
-
+	    	//Moving this outside the function kills performance...
+	    	//The budget total location -> sum of + and -
 	    	l = innerRadius + scale.out(refData[d.data.id]['budget']);
     		var x0 = l * Math.sin(alpha);
 				var y0 = l * Math.cos(alpha);
@@ -344,155 +501,10 @@ function generateDonut(refData){
 	    .attr("d", arc)
 	    .classed('arcs', true)
 	    .style('fill', 'rgb(250, 255, 200)')
-	    .on("mouseover", function(d) {
-	    	if(d.data.circle == false){
-	    		//to check to not override selected bars
-	    		d3.select(this).style('fill', 'orange');
-	    	}
+	    .on("mouseover", mainArcs.mouseover)
+	    .on("mouseout", mainArcs.mouseout)
+	    .on("click", mainArcs.click)
 
-	    	if(d.data.circle == true){
-	    		//d3.select(this).style('fill', 'orange');
-	    		var alpha = (d.startAngle + d.endAngle)/2;
-	    		//stripes
-	    		for(var l = d.innerRadius; l < d.outerRadius; l+=5){
-		    		var x0 = l * Math.sin(alpha);
-						var y0 = l * Math.cos(alpha);
-
-						//find tangental line
-						var newAngle = alpha + Math.PI/2;
-						var newl = l * Math.PI / Object.keys(refData).length;
-						var x2 = x0 + newl * Math.sin(newAngle)
-						var y2 = y0 + newl * Math.cos(newAngle)
-						var x1 = x0 - newl * Math.sin(newAngle)
-						var y1 = y0 - newl * Math.cos(newAngle)
-
-						svg.append("line")
-					    .style("stroke-width", "2.5px")
-					    .style("stroke", 'orange')
-					    .classed('a' + d.data.id, true)
-					    .attr("x1", x1)
-					    .attr("x2", x2)
-					    .attr("y1", -y1)
-					    .attr("y2", -y2)
-					    //Need to add action listener so that if this is clicked same behaviour as bar...
-					    //can pass in a method that will do it..
-					}
-	    	}
-
-	    	/*d3.select("#valueOutput").html(refData[d.data.id]['agency']);
-	      d3.select("#valueSource").html(
-	      	'<tspan x="1">Budget Positive: $' + formatNumber(refData[d.data.id]['budget_positive']) + '</tspan>' + 
-	      	'<tspan x="1" dy="15">Budget Negative: $' + formatNumber(refData[d.data.id]['budget_negative']) + '</tspan>' + 
-	      	'<tspan x="1" dy="15">Budget: $' + formatNumber(refData[d.data.id]['budget']) + '</tspan>'
-	      	);*/
-	      d3.select(".valueText").html( //turn this into a table
-	      	'<b>' + refData[d.data.id]['agency'] + '</b><br>' + '<table align="center">' + 
-	      	'<tr><td align="center">' + 'Budget Positive:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_positive']) + '</td></tr>' + 
-	      	'<tr><td align="center">' + 'Budget Negative:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget_negative']) + '</td></tr>' + 
-	      	'<tr id="aggregate"><td align="center">' + 'Budget Total:' + '</td><td align="center">$' + formatNumber(refData[d.data.id]['budget']) + '</td></tr>' + '<table'
-	      )
-
-	      //animation for .distance-circle to change position over time
-	     	 /*d3.selectAll('.distance-circle')
-	      	.transition()
-	      	.delay(100)
-	      	.duration(500)
-	      	//.ease('bounce')
-	      	.attr('r', d.outerRadius)*/
-
-	      //Should have multiple lines for budget, +, -
-	      d3.select("circle") //canvas element
-		    	.transition()
-		    	.delay(100)
-		      .duration(500)
-		      .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
-	    })
-	    .on("mouseout", function(d){
-	    	if(d.data.circle == true){
-	    		/*d3.select(this)
-	    			.transition()
-	    			.delay(125)
-	    			.duration(250)
-	    			.style('fill', 'maroon');*/
-
-	    		svg.selectAll(".a" + d.data.id)
-				    .transition()
-				    .duration(500)
-				    .style('stroke', 'maroon')
-				    .remove()
-	    	}
-	    	if(d.data.circle == false){
-	    		d3.select(this)
-	    			.transition()
-	    			.delay(125)
-	    			.duration(250)
-	    			.style('fill', 'rgb(250, 255, 200)');
-	    	}
-	    })
-	    .on("click", function(d) {
-	    	console.log(refData[d.data.id]['details'])
-
-	    	console.log(refData[d.data.id])
-
-	    	//unique identifier for each arc
-	    	//what are other ways to associate a comparison circle with the arc?
-	    	var id = 'a' + d.data.id 
-
-	    	//Benefit of id reference -> can access central data from anything (as long have it)
-	    	//want to have arc come in at a constant rate (pixels/milli)
-	    	var time = Math.abs((scale.out(refData[d.data.id]['budget']) + innerRadius - smallestDim) * 2);
-	    	console.log(time)
-
-	    	svg.selectAll("." + id)
-				  .remove()
-
-	    	if(d.data.circle == false){
-	    		d.data.circle = true; //this creates a new item in the object
-	    		d3.select(this).style('fill', 'maroon');
-
-	    		//note there is no data associated with this. [lack of enter()]
-		    	/*d3.select('#chartArea').select('svg').append('circle')
-		      	.classed('distance-circle-comp', true) //should make this canvas instead
-		      	.attr("r", smallestDim)
-		      	.attr('id', id)
-		      	.attr("cx", w/2)
-						.attr("cy", h/2)
-						.transition()
-						.duration(time) //why does frame rate drop more on fly in than flyout
-						.attr("r", d.outerRadius);*/
-
-
-					sketch.append("custom:circle-" + id) //canvas comparison circle
-				    .attr("x", w/2)
-				    .attr("y", h/2)
-				    .attr("r", smallestDim)
-				    .attr("strokeStyle", "maroon")
-				    .transition()
-				    .duration(time)
-				    .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
-
-					console.log(d)
-				}
-				else{
-					/*d3.select('#' + id)
-						.transition()
-						.delay(100)
-						.duration(time*2)
-						.attr("r", smallestDim)
-						.remove(); 	*/
-
-					//if click on the dashed bar -> should also remove the bars
-					d3.select('circle-' + id) //canvas comparison circle
-						.transition()
-						.delay(100)
-						.duration(time*2)
-						.attr("r", smallestDim)
-						.remove(); 
-
-					d3.select(this).style('fill', 'orange');
-					d.data.circle = false;
-				}
-	    })
 
 	//text implimentations: svg, canvas, or foreignObject (html)
 	/*svg.append("text")
@@ -581,6 +593,41 @@ function generateDonut(refData){
           return ((d3.selectAll('.circles').attr('r') != 4) ? 4 : 2);
       	});
 		}, 1000)
+	}
+	drawVerticals(vLine, 'maroon', '')
+	function drawVerticals(coordinates, colour, group){
+		coordinates = coordinates.sort(function(a, b){
+			return a[0] - b[0];
+		})
+		
+		for(i in coordinates){
+			var alpha = coordinates[i][0];
+			var innerRadius = coordinates[i][1];
+			var outerRadius = coordinates[i][2];
+			var x1 = outerRadius * Math.sin(alpha);
+			var y1 = outerRadius * Math.cos(alpha);
+			var x0 = innerRadius * Math.sin(alpha);
+			var y0 = innerRadius * Math.cos(alpha);
+
+
+			var target = 'a' + String(alpha).replace('.','');
+			svg.append("line")
+		    .style("stroke-width", "2.5px")
+		    .style("stroke", colour)
+		    .attr("class", target + " " + group)
+		    .attr("x1", x1)
+		    .attr("x2", x0)
+		    .attr("y1", -y1)
+		    .attr("y2", -y0)
+		    .classed(target, true)
+		    .on('mouseover', function(){
+		    	d3.select(this).style("stroke-width", "5px")
+		    })
+		    .on('mouseout', function(){
+		    	d3.select(this).style("stroke-width", "2.5px")
+		    })
+
+		}
 	}
 }
 

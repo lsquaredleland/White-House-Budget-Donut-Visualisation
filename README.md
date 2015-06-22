@@ -14,7 +14,6 @@ Use: D3.js
 
 ###Todo:
 * Find a better way to unite the budget and refData array, and how they access it each other, etc
-* Optimisation in terms of smoothness ->  currrently lags to an extent
 * use canvas instead of svg entirely?
 * Move canvas comparison circles to the front rather than the rear...How to impliment??
 * Too much canvas? Doesn't exactly look great when zoomed upon....Is that a concern or does it not matter?
