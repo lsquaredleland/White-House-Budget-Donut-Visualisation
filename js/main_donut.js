@@ -299,6 +299,17 @@ function generateDonut(refData){
 		}
 
 		if(d.data.circle == true){
+			svg.append('defs')
+			  .append('pattern')
+			    .attr('id', 'diagonalHatch')
+			    .attr('patternUnits', 'userSpaceOnUse')
+			    .attr('width', 4)
+			    .attr('height', 4)
+			  .append('path')
+			    .attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
+			    .attr('stroke', '#000000')
+			    .attr('stroke-width', 1);
+			d3.select(this).style('fill', 'url(#diagonalHatch)')
 			/*notOnLines = true
 			//d3.select(this).style('fill', 'orange');
 			var alpha = (d.startAngle + d.endAngle)/2;
@@ -356,7 +367,7 @@ function generateDonut(refData){
 	    .duration(500)
 	    .attr("r", scale.out(refData[d.data.id]['budget']) + innerRadius)
 	}
-	mainArcs.mouseout = function(d){
+	mainArcs.mouseleave = function(d){
 		if(d.data.circle == true && notOnLines){ //Need to check to see if not on the bands....
 			/*d3.select(this)
 				.transition()
@@ -494,7 +505,7 @@ function generateDonut(refData){
 			    	d3.selectAll('.budget').style("stroke-width", "5px")
 			    	d3.select("#aggregate").style("font-weight", "bold")
 			    })
-			    .on("mouseout", function(){
+			    .on("mouseleave", function(){
 			    	d3.selectAll('.budget').style("stroke-width", "2.5px")
 			    })
 	    })
@@ -502,7 +513,7 @@ function generateDonut(refData){
 	    .classed('arcs', true)
 	    .style('fill', 'rgb(250, 255, 200)')
 	    .on("mouseover", mainArcs.mouseover)
-	    .on("mouseout", mainArcs.mouseout)
+	    .on("mouseleave", mainArcs.mouseleave)
 	    .on("click", mainArcs.click)
 
 
@@ -620,12 +631,7 @@ function generateDonut(refData){
 		    .attr("y1", -y1)
 		    .attr("y2", -y0)
 		    .classed(target, true)
-		    .on('mouseover', function(){
-		    	d3.select(this).style("stroke-width", "5px")
-		    })
-		    .on('mouseout', function(){
-		    	d3.select(this).style("stroke-width", "2.5px")
-		    })
+		    .attr('pointer-events', 'none')
 
 		}
 	}
