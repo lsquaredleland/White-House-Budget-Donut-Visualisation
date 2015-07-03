@@ -299,16 +299,24 @@ function generateDonut(refData){
 		}
 
 		if(d.data.circle == true){
+			//Alternative pattern to try out
+			/*<pattern id="Triangle" 
+         width="10" height="10"
+         patternUnits="userSpaceOnUse">
+      	<polygon points="5,0 10,10 0,10"/>
+	    </pattern>*/
 			svg.append('defs')
 			  .append('pattern')
 			    .attr('id', 'diagonalHatch')
 			    .attr('patternUnits', 'userSpaceOnUse')
-			    .attr('width', 4)
-			    .attr('height', 4)
-			  .append('path')
-			    .attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
-			    .attr('stroke', '#000000')
-			    .attr('stroke-width', 1);
+			    .attr('width', 10)//4
+			    .attr('height', 10)//4
+			  //.append('path')
+			    //.attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
+			    //.attr('stroke', '#000000')
+			    //.attr('stroke-width', 1);
+			  .append('polygon')
+			  	.attr('points', "5,0 10,10 0,10")
 			d3.select(this).style('fill', 'url(#diagonalHatch)')
 			/*notOnLines = true
 			//d3.select(this).style('fill', 'orange');
